@@ -1,0 +1,422 @@
+## DevOps Interview question that I faced during my interview ##
+1.	How do you determine if a subnet is private or public? --session 29
+Public Subnet: A public subnet is a subnet that has a route to the Internet Gateway. Resources in a public subnet can be accessed from the internet and can also access the internet directly. This is typically used for resources that need to be publicly accessible, such as web servers, load balancers, and other publicly accessible services.
+Private Subnet: A private subnet, on the other hand, is a subnet that does not have a route to the Internet Gateway. Resources in a private subnet can access the internet, but only via a NAT Gateway or a bastion host in a public subnet. This is typically used for resources that do not need to be publicly accessible, such as databases, application servers, and other internal services.
+
+2.	if I want to run a specific container in pod in Kubernetes how to run it?
+To run a specific container in a pod in Kubernetes, you can use the kubectl exec command. This command allows you to execute a command inside a running container within a pod. Here’s how you can do it:
+
+Identify the Pod and Container:
+
+First, you need to know the name of the pod and the container you want to run a command in. You can list the pods in your namespace using:
+
+kubectl get pods
+
+If you need to see the containers in a specific pod, use:
+
+kubectl describe pod <pod-name>
+Run a Command in the Container:
+
+Use the kubectl exec command to run a command in a specific container within the pod. The syntax is:
+
+kubectl exec -it <pod-name> -c <container-name> -- <command>
+
+-it is used to run the command interactively (especially useful for commands like bash or sh).
+<pod-name> is the name of the pod.
+-c <container-name> specifies the container within the pod (this is optional if the pod has only one container).
+-- separates the command options from the kubectl exec options.
+<command> is the command you want to run inside the container.
+For example, to start a bash shell in a container named my-container in a pod named my-pod, you would use:
+
+
+kubectl exec -it my-pod -c my-container -- /bin/bash
+Check Output or Perform Tasks:
+
+After executing the command, you’ll be inside the container’s shell (if you’re running an interactive command) or see the output of the command.
+
+3.	What is diff b\w EBS and EFS
+While EFS is a managed elastic file system designed for use across different machines and availability zones, EBS is designed as a fast and reliable block storage volume for single machines
+
+4.	Can you attach a single EBS volume to the multiple EC2 instances at the same time? 
+You can attach an available EBS volume to one or more of your instances that is in the same Availability Zone as the volume.
+ 
+5.	what is the diff b\w ALB and NLB 
+In AWS (Amazon Web Services), Application Load Balancer (ALB) and Network Load Balancer (NLB) are two different types of load balancers that serve different purposes and have distinct features. Here’s a comparison of their key differences:
+
+Application Load Balancer (ALB):
+Layer:
+
+Operates at Layer 7 (Application Layer) of the OSI model.
+Use Case:
+
+Designed for HTTP and HTTPS traffic.
+Ideal for applications that require advanced request routing, SSL termination, and web-based applications.
+Features:
+
+Content-Based Routing: Can route traffic based on URL path, host headers, HTTP methods, query strings, and other HTTP attributes.
+WebSocket Support: Supports WebSocket and HTTP/2 protocols.
+Path-Based Routing: Allows routing traffic to different backend services based on the URL path.
+Host-Based Routing: Routes traffic based on the hostname.
+Health Checks: Performs health checks at the application layer (HTTP status codes).
+Sticky Sessions: Supports sticky sessions (session persistence) using cookies.
+Performance:
+
+Designed for high-level application traffic management, which can include more complex routing rules and features.
+Cost:
+
+Pricing is based on the number of hours the ALB runs and the amount of data processed by the ALB.
+Network Load Balancer (NLB):
+Layer:
+
+Operates at Layer 4 (Transport Layer) of the OSI model.
+Use Case:
+
+Designed for TCP, UDP, and TLS traffic.
+Ideal for scenarios requiring ultra-low latency, high throughput, and handling network traffic.
+Features:
+
+TCP/UDP Load Balancing: Supports load balancing of TCP and UDP traffic.
+TLS Termination: Can offload TLS/SSL encryption and decryption, similar to ALB but at the transport layer.
+Static IP Addresses: Can be assigned a static IP address, which is useful for integrating with other services that require fixed IP addresses.
+Health Checks: Performs health checks at the transport layer (TCP connection attempts).
+High Performance: Designed for extreme performance and can handle millions of requests per second while maintaining ultra-low latency.
+Performance:
+
+Optimized for performance and scalability at the network level, making it suitable for high-throughput and low-latency applications.
+Cost:
+
+Pricing is based on the number of hours the NLB runs, the amount of data processed, and the number of new connections per second.
+Summary:
+ALB is suitable for HTTP/HTTPS applications where advanced routing and application-layer features are required.
+NLB is suited for TCP/UDP traffic requiring high performance, low latency, and static IP addresses.
+Choosing between ALB and NLB depends on the specific needs of your application, such as the type of traffic, required features, and performance characteristics.
+6.	Remote state in terraform and state in terraform?
+In Terraform, state refers to the mapping between your Terraform configurations and the real-world infrastructure. Understanding how state works and the concept of remote state is crucial for managing infrastructure effectively, especially in collaborative or complex environments.
+
+Local State
+Definition: The local state file (terraform.tfstate) is a JSON file that Terraform uses to keep track of the resources it manages. It records information about your resources and their current state.
+Location: By default, this file is stored in the root directory of your Terraform project.
+Use Case: Useful for managing infrastructure in smaller, single-user environments or during initial development stages.
+Pros:
+
+Simple to set up and manage.
+Suitable for single-user or non-collaborative environments.
+Cons:
+
+Not suitable for team environments where multiple users or CI/CD systems need to access and modify the state.
+Risk of state file corruption or loss if not backed up properly.
+Can lead to conflicts if multiple users make changes simultaneously.
+Remote State
+Definition: Remote state stores the state file in a remote location, such as an S3 bucket in AWS, a GCS bucket in Google Cloud, or a backend like Terraform Cloud or Azure Storage. This allows for better management and collaboration.
+Location: The state file is stored in a centralized remote backend rather than locally.
+Use Case: Essential for teams or when using CI/CD pipelines. It ensures that state is shared and consistent across different users or systems.
+Pros:
+
+Collaboration: Multiple users or systems can access and update the state without conflicts, as the state is centralized.
+State Locking: Many remote backends support state locking to prevent simultaneous updates that could corrupt the state.
+Security: Remote backends often provide additional security features, such as encryption and access control.
+Cons:
+
+Complexity: Requires configuration and may involve additional costs or setup effort depending on the backend.
+Dependency on Backend: The remote backend itself must be managed and maintained.
+Setting Up Remote State
+To configure remote state, you need to specify a backend in your terraform block in your Terraform configuration file (main.tf or similar). Here’s a basic example for using an S3 bucket as a remote backend:
+
+terraform {
+  backend "s3" {
+    bucket         = "my-tf-state-bucket"
+    key            = "terraform/state"
+    region         = "us-west-2"
+    encrypt        = true
+  }
+}
+
+Migrating State
+If you need to migrate your state from local to remote, you can use the terraform init command, which will prompt you to configure the new backend and migrate the state file:
+
+bash
+Copy code
+terraform init -migrate-state
+This command initializes your Terraform configuration with the new backend and migrates the state file to the new location.
+
+Summary
+Local State: Best for simple, single-user setups. Risks include potential conflicts and state management issues.
+Remote State: Essential for team environments and CI/CD pipelines. Provides centralized management, locking, and security, but requires setup and maintenance of the remote backend.
+Understanding these concepts will help you manage your Terraform infrastructure more effectively and ensure smooth collaboration within your team.
+
+7.	what are pipeline stages in your organization?
+8.	terraform data block vs resource block?
+In Terraform, both data blocks and resource blocks are used to manage infrastructure, but they serve different purposes. Here’s a breakdown of each:
+
+Resource Block
+Purpose: The resource block is used to manage the lifecycle of a piece of infrastructure. This means it can create, read, update, and delete resources.
+
+Syntax:
+
+hcl
+Copy code
+resource "provider_resource_type" "resource_name" {
+  # Configuration options
+}
+Example:
+
+hcl
+Copy code
+resource "aws_instance" "example" {
+  ami           = "ami-12345678"
+  instance_type = "t2.micro"
+}
+In this example, the aws_instance resource block is used to create an EC2 instance.
+
+Lifecycle: Terraform will create, update, or delete the resource as defined in the configuration files. This block defines a desired state and ensures that the actual state of the resource matches the desired state.
+
+Data Block
+Purpose: The data block is used to fetch and use information about existing resources or infrastructure. It does not create or modify any infrastructure; it only retrieves data that can be used elsewhere in your configuration.
+
+Syntax:
+
+hcl
+Copy code
+data "provider_data_source" "data_name" {
+  # Configuration options
+}
+Example:
+
+hcl
+Copy code
+data "aws_ami" "latest" {
+  most_recent = true
+  owners      = ["amazon"]
+}
+In this example, the aws_ami data block retrieves information about the latest Amazon Machine Image (AMI) provided by Amazon.
+
+Usage: Data blocks are useful for referencing existing resources or for looking up information that is needed for resource creation. For example, you might need the ID of an existing VPC to launch a new EC2 instance into that VPC.
+
+Key Differences
+Purpose:
+
+Resource Block: Manages lifecycle (create, update, delete).
+Data Block: Fetches information about existing resources.
+State Management:
+
+Resource Block: Maintains state and ensures the infrastructure matches the configuration.
+Data Block: Does not maintain state; it only retrieves data.
+Actions:
+
+Resource Block: Performs actions on infrastructure (e.g., provisioning an EC2 instance).
+Data Block: Queries and uses existing data (e.g., finding an existing AMI).
+In summary, use resource blocks to define and manage infrastructure components, and use data blocks to fetch information about existing infrastructure or configurations.
+9.	Entry point vs CMD
+In Docker, ENTRYPOINT and CMD are instructions used to specify what command should be executed when a container starts. While they can be used in similar ways, they have distinct purposes and behaviors. Here’s a breakdown of each:
+
+ENTRYPOINT
+Purpose: Defines the main command to run when a container starts. It sets up the container to always run a specific executable, which cannot be overridden easily.
+
+Syntax:
+
+dockerfile
+Copy code
+ENTRYPOINT ["executable", "param1", "param2"]
+or
+
+dockerfile
+Copy code
+ENTRYPOINT executable param1 param2
+Behavior: The command specified in ENTRYPOINT is always executed and cannot be overridden by providing a different command when running the container. This makes it suitable for setting up a container to run a particular application or script.
+
+Example:
+
+dockerfile
+Copy code
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+This means the container will always start the nginx service.
+
+CMD
+Purpose: Provides default arguments for the ENTRYPOINT command or specifies a command to run if no command is provided at runtime. If both ENTRYPOINT and CMD are used, CMD provides additional arguments to ENTRYPOINT.
+
+Syntax:
+
+dockerfile
+Copy code
+CMD ["param1", "param2"]
+or
+
+dockerfile
+Copy code
+CMD executable param1 param2
+or
+
+dockerfile
+Copy code
+CMD ["param1", "param2"]
+Behavior: If a command is provided when running the container, it will override the CMD but not the ENTRYPOINT. If no command is provided, the default CMD will be used.
+
+Example:
+
+dockerfile
+Copy code
+CMD ["-g", "daemon off;"]
+When combined with the ENTRYPOINT from the previous example, this CMD would provide the default argument to nginx.
+
+Combined Use
+When both ENTRYPOINT and CMD are used in a Dockerfile, CMD provides default arguments to the ENTRYPOINT executable.
+
+Example:
+dockerfile
+Copy code
+FROM ubuntu:latest
+ENTRYPOINT ["echo"]
+CMD ["Hello, world!"]
+Running this container will output Hello, world! by default, as CMD provides arguments to the ENTRYPOINT command.
+Key Differences
+Overriding Behavior:
+
+ENTRYPOINT: Command is fixed and not easily overridden.
+CMD: Can be overridden by specifying a different command when running the container.
+Usage:
+
+ENTRYPOINT: Ideal for defining the main application or process for the container.
+CMD: Ideal for providing default arguments or for cases where you want to offer flexibility in the command run at container start.
+Priority:
+
+If both ENTRYPOINT and CMD are defined, ENTRYPOINT is executed with CMD providing default arguments. If a command is provided when running the container, it overrides CMD but not ENTRYPOINT.
+Choosing between ENTRYPOINT and CMD depends on your use case: if you want to ensure that a specific application always runs, use ENTRYPOINT; if you want to provide default options that can be overridden, use CMD.
+10.	How the pods are communicating with each other?
+In Kubernetes, pods communicate with each other using several mechanisms and networking concepts. Here’s a detailed overview of how this communication works:
+
+1. Pod-to-Pod Communication
+Direct Communication
+Within the Same Node: Pods on the same node can communicate with each other using their container’s IP addresses. This communication is handled through the node’s networking stack.
+
+Across Different Nodes: Kubernetes uses a cluster-wide network overlay to enable communication between pods across different nodes. Each pod is assigned a unique IP address, and the network overlay ensures that these IP addresses are reachable from any node in the cluster.
+
+Service Abstractions
+Services: To simplify communication between pods, Kubernetes provides the Service abstraction. A Service is a logical abstraction that provides a stable IP address and DNS name to access a group of pods. Services use selectors to determine which pods are part of the service.
+
+Service Types:
+
+ClusterIP: Exposes the service on an internal IP address within the cluster.
+NodePort: Exposes the service on each node’s IP at a static port.
+LoadBalancer: Exposes the service externally using a cloud provider’s load balancer.
+Headless Service: Does not assign a cluster IP and is used for direct pod communication or StatefulSets.
+DNS: Kubernetes includes a DNS service that assigns DNS names to services and pods. Pods can use these DNS names to communicate with each other. For example, a pod can access a service using my-service.my-namespace.svc.cluster.local.
+
+Network Policies
+Network Policies: Kubernetes allows you to define NetworkPolicy objects to control the communication between pods. These policies can restrict traffic based on namespaces, labels, and IP blocks.
+2. Service Discovery
+Environment Variables: Kubernetes automatically injects environment variables into pods for services. These variables contain information about service endpoints.
+
+DNS-based Service Discovery: Kubernetes uses CoreDNS or kube-dns to provide DNS-based service discovery. Pods can resolve service names to IP addresses using DNS.
+
+3. Inter-Pod Communication in StatefulSets
+StatefulSets: StatefulSets are used for managing stateful applications. They provide stable network identities and persistent storage. Pods in a StatefulSet can communicate with each other using predictable DNS names based on their ordinal index (e.g., pod-0.service-name.default.svc.cluster.local).
+4. Network Overlay Solutions
+CNI Plugins: Kubernetes uses Container Network Interface (CNI) plugins to provide networking capabilities. CNI plugins handle network overlays and manage network policies. Common CNI plugins include Calico, Flannel, Weave, and Cilium.
+Summary
+Direct Communication: Pods can communicate directly using IP addresses, whether on the same node or across nodes.
+Services: Provide stable access points and load balancing for groups of pods.
+DNS: Facilitates service discovery through DNS names.
+Network Policies: Control traffic between pods based on defined rules.
+StatefulSets: Provide stable network identities for stateful applications.
+CNI Plugins: Handle network overlays and management.
+11.	what is VPC endpoint  
+12.	what is docker file?
+13.	What are the similarities between SSL and TLS?
+14.	What will you do to make you application more secure?
+15.	What is the architecture of your application CICD deployment in current org?
+16.	what is multi stage in docker?
+17.	Namespace in k8?
+18.	what are tags in ansible?
+19.	what is pod security policy  
+20.	ami and snapshot difference  
+21.	Upgrade master node
+22.	How will you implement the security for a running container if you find an vulnerability?
+23.	What are the various things that can be done to increase Kubernetes security?
+24.	Problem faced?
+25.	What is s3? 
+26.	What is the issue have u faced in Jenkins non prod to prod while building the Jenkins job?
+27.	What are issued faced in web application from pre pod to pod ?
+28.	Git conflict?
+29.	Branching strategy?
+30.	How often do you release the product?
+31.	What is your role in the project?
+32.	Day to day activities
+33.	How do you handle issues at the production level?
+34.	pipeline issues in Jenkins
+35.	production pipeline issues in Jenkins
+36.	Kubernetes issues in production
+37.	How do you collaborate with various teams?
+38.	what are the build issues have you faced in your project?
+39.	Deployment strategies  
+40.	What is the architecture of Kubernetes?
+41.	What is booting process in Linux?
+42.	what is inode in Linux?
+43.	how to resolve merge conflicts?
+44.	What are various plugins in your Jenkins Pipeline?
+45.	what is inode in Linux?
+46.	What is VPC and its components?
+47.	What is difference between NACL and Security groups?
+48.	difference between Network and application load balancer
+49.	What are the different dashboards created in Grafana?
+50.	what is ansible playbook?
+51.	What are handlers in Ansible playbook?
+52.	What are various modules you have used in Ansible?
+53.	What is Ansible ad hoc command?
+54.	how the pod health check is done in Kubernetes?
+55.	Route 53 types 
+56.	helm charts usage?
+57.	terraform modules?
+58.	What is Docker volume and how do you use it?
+59.	Network ACL --> to block particular IP 
+60.	What is the Blue/Green Deployment Pattern?
+61.	What is a route table in Amazon VPC?
+62.	A role is type IAM identity used to authenticate and authorize to utilize the AWS services.
+63.	policy is nothing but what type of permission is given to the IAM identity
+64.	Merge vs rebase 
+65.	interactive rebase git
+66.	squash in git
+67.	fast-forward merge in Git?
+68.	What is cherry pic
+69.	Jenkins error
+70.	Provider in terraform 
+71.	How do you debug your existed container?
+72.	how do you upgrade Jenkins?
+73.	Null resource in terraform 
+74.	Explian S3 lifecycle
+75.	Can you increase the size of the root volume without shutting down the instance?
+76.	How has Ansible helped your organization?
+77.	What is Kubernetes Ingress?
+78.	Kubernetes ConfigMaps and Secrets?
+79.	What is Deamon set
+80.	How can we pass an argument to Dockerfile?
+81.	What are register targets in Ansible?
+82.	Dockerfile runs as which user?
+83.	Docker Compose?
+84.	 How do you push the image to Docker Hub
+85.	 Write the docker file in java based
+86.	Can you explain the concept of auto-healing in Kubernetes and give examples of how it works?
+87.	What is the label & selector in k8s?
+88.	What is crashloofbackoff state in a pod?
+89.	What is DR?
+90.	How do you create a multi-branch Jenkins pipeline?
+91.	Explain the concept of a workspace
+92.	How to access the S3 bucket privately
+93.	How many many VPC can we create in one Region
+94.	autoscaling in aws ?
+95.	how microservces will work?
+96.	How do you mange credentials in terraform?
+97. What is CRONTAB?
+98. How would you know the disk usage using the shell script commands?
+99. Give the purpose of the shebang line.
+100. Tell us about the ‘$#’ use in shell scripting.
+
+## Devops Scenario Based Interview Questions ##
+
+ 1. your organization is experiencing intermittent outages in its production environment, impacting customer experience. How would you approach troubleshooting and resolving these outages?
+
+ 2. You've just deployed a new version of an application to production, but shortly after deployment, users are reporting issues with slow response times. What steps would you take to 
+    troubleshoot and resolve this issue?
+
+ 3. Can you outline the key components of the CI/CD pipeline you would design for this project, including the tools you would use and the specific stages in the pipeline?
+
+ 4. How do we enforce policy to automatically include a group as a PR ( Pull Request ) approver?

@@ -1,0 +1,8 @@
+00.what is devops?
+Ans: DevOps is a process of improving the application delivery by ensuring automation, quality, continuous monitoring and continuous testing.
+  
+01.dif b/w symlink and hardlink?
+02.forward proxy and reverse proxy?
+03.questions regarding port numbers
+04.HTTP responses and statuses
+05.most used Linux commands
